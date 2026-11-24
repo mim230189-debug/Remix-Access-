@@ -1,0 +1,8 @@
+{
+  "name": "Remix Wink Remote Access",
+  "description": "Consent-first Android remote access and support agent connecting registered devices to a personal web controller dashboard via Firebase and WebRTC.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

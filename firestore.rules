@@ -1,0 +1,247 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: deny everything by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserAccount(data, userId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             data.userId.size() >= 1 &&
+             data.userId.size() <= 128 &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 200)) &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+             (!('themePreference' in data) || data.themePreference in ['SYSTEM', 'LIGHT', 'DARK']) &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time &&
+             data.updatedAt is timestamp &&
+             data.updatedAt <= request.time;
+    }
+
+    function isValidRegisteredDevice(data, userId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             data.deviceName is string && data.deviceName.size() >= 1 && data.deviceName.size() <= 80 &&
+             data.manufacturer is string && data.manufacturer.size() >= 1 && data.manufacturer.size() <= 60 &&
+             data.model is string && data.model.size() >= 1 && data.model.size() <= 60 &&
+             data.osVersion is string && data.osVersion.size() >= 1 && data.osVersion.size() <= 30 &&
+             data.appVersion is string && data.appVersion.size() >= 1 && data.appVersion.size() <= 30 &&
+             data.connectionStatus in ['ONLINE', 'IDLE', 'IN_SESSION', 'OFFLINE'] &&
+             data.screenShareSupported is bool &&
+             data.cameraSupported is bool &&
+             data.microphoneSupported is bool &&
+             data.remoteSupportEnabled is bool &&
+             (!('fcmToken' in data) || (data.fcmToken is string && data.fcmToken.size() <= 512)) &&
+             data.lastSeenAt is timestamp && data.lastSeenAt <= request.time &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidRemoteSession(data, userId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             data.deviceId is string && data.deviceId.size() >= 1 && data.deviceId.size() <= 128 &&
+             data.controllerLabel is string && data.controllerLabel.size() >= 1 && data.controllerLabel.size() <= 80 &&
+             data.controllerOrigin is string && data.controllerOrigin.size() >= 1 && data.controllerOrigin.size() <= 120 &&
+             data.requestedMode in ['SCREEN', 'CAMERA', 'SCREEN_AND_AUDIO', 'FULL_SUPPORT'] &&
+             data.status in ['PENDING', 'ACTIVE', 'REJECTED', 'TERMINATED'] &&
+             data.screenSharingActive is bool &&
+             data.cameraActive is bool &&
+             data.microphoneActive is bool &&
+             data.remoteSupportActive is bool &&
+             (!('terminationReason' in data) || (data.terminationReason is string && data.terminationReason.size() <= 120)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidWebRtcSignal(data, userId, sessionId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             data.sessionId is string &&
+             data.sessionId == sessionId &&
+             data.senderRole in ['DEVICE', 'CONTROLLER'] &&
+             data.signalType in ['OFFER', 'ANSWER', 'ICE_CANDIDATE'] &&
+             data.sdpOrCandidate is string && data.sdpOrCandidate.size() >= 1 && data.sdpOrCandidate.size() <= 16384 &&
+             (!('sdpMid' in data) || (data.sdpMid is string && data.sdpMid.size() <= 64)) &&
+             (!('sdpMLineIndex' in data) || (data.sdpMLineIndex is int && data.sdpMLineIndex >= 0 && data.sdpMLineIndex <= 32)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll(['userId', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'email', 'displayName', 'themePreference', 'createdAt', 'updatedAt']) &&
+                       isValidUserAccount(incoming(), userId);
+
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserAccount(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['email', 'displayName', 'themePreference', 'updatedAt']);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /devices/{deviceId} {
+        allow get: if isOwner(userId) && isValidId(deviceId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(deviceId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'deviceName', 'manufacturer', 'model', 'osVersion', 'appVersion',
+                           'connectionStatus', 'screenShareSupported', 'cameraSupported',
+                           'microphoneSupported', 'remoteSupportEnabled', 'lastSeenAt', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'deviceName', 'manufacturer', 'model', 'osVersion', 'appVersion',
+                           'connectionStatus', 'screenShareSupported', 'cameraSupported',
+                           'microphoneSupported', 'remoteSupportEnabled', 'fcmToken', 'lastSeenAt', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidRegisteredDevice(incoming(), userId);
+
+        allow update: if isOwner(userId) &&
+                         isValidId(deviceId) &&
+                         isValidRegisteredDevice(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'deviceName', 'osVersion', 'appVersion', 'connectionStatus',
+                           'screenShareSupported', 'cameraSupported', 'microphoneSupported',
+                           'remoteSupportEnabled', 'fcmToken', 'lastSeenAt', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(deviceId);
+      }
+
+      match /sessions/{sessionId} {
+        allow get: if isOwner(userId) && isValidId(sessionId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(sessionId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'deviceId', 'controllerLabel', 'controllerOrigin', 'requestedMode',
+                           'status', 'screenSharingActive', 'cameraActive', 'microphoneActive',
+                           'remoteSupportActive', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'deviceId', 'controllerLabel', 'controllerOrigin', 'requestedMode',
+                           'status', 'screenSharingActive', 'cameraActive', 'microphoneActive',
+                           'remoteSupportActive', 'terminationReason', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().status == 'PENDING' &&
+                         incoming().screenSharingActive == false &&
+                         incoming().cameraActive == false &&
+                         incoming().microphoneActive == false &&
+                         incoming().remoteSupportActive == false &&
+                         isValidRemoteSession(incoming(), userId) &&
+                         exists(/databases/$(database)/documents/users/$(userId)/devices/$(incoming().deviceId));
+
+        allow update: if isOwner(userId) &&
+                         isValidId(sessionId) &&
+                         isValidRemoteSession(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().deviceId == existing().deviceId &&
+                         incoming().createdAt == existing().createdAt &&
+                         !(existing().status in ['REJECTED', 'TERMINATED']) &&
+                         (
+                           // Action: Accept incoming PENDING request
+                           (
+                             existing().status == 'PENDING' &&
+                             incoming().status == 'ACTIVE' &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'status', 'screenSharingActive', 'cameraActive',
+                               'microphoneActive', 'remoteSupportActive', 'updatedAt'
+                             ])
+                           ) ||
+                           // Action: Reject incoming PENDING request
+                           (
+                             existing().status == 'PENDING' &&
+                             incoming().status == 'REJECTED' &&
+                             incoming().screenSharingActive == false &&
+                             incoming().cameraActive == false &&
+                             incoming().microphoneActive == false &&
+                             incoming().remoteSupportActive == false &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'status', 'terminationReason', 'updatedAt'
+                             ])
+                           ) ||
+                           // Action: Toggle active media streams while session is ACTIVE
+                           (
+                             existing().status == 'ACTIVE' &&
+                             incoming().status == 'ACTIVE' &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'screenSharingActive', 'cameraActive',
+                               'microphoneActive', 'remoteSupportActive', 'updatedAt'
+                             ])
+                           ) ||
+                           // Action: Terminate PENDING or ACTIVE session (clears all media flags)
+                           (
+                             existing().status in ['PENDING', 'ACTIVE'] &&
+                             incoming().status == 'TERMINATED' &&
+                             incoming().screenSharingActive == false &&
+                             incoming().cameraActive == false &&
+                             incoming().microphoneActive == false &&
+                             incoming().remoteSupportActive == false &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'status', 'screenSharingActive', 'cameraActive',
+                               'microphoneActive', 'remoteSupportActive', 'terminationReason', 'updatedAt'
+                             ])
+                           )
+                         );
+
+        allow delete: if isOwner(userId) && isValidId(sessionId);
+
+        match /signals/{signalId} {
+          allow get: if isOwner(userId) && isValidId(sessionId) && isValidId(signalId);
+          allow list: if isOwner(userId) && isValidId(sessionId);
+
+          allow create: if isOwner(userId) &&
+                           isValidId(sessionId) &&
+                           isValidId(signalId) &&
+                           incoming().keys().hasAll([
+                             'userId', 'sessionId', 'senderRole', 'signalType', 'sdpOrCandidate', 'createdAt'
+                           ]) &&
+                           incoming().keys().hasOnly([
+                             'userId', 'sessionId', 'senderRole', 'signalType',
+                             'sdpOrCandidate', 'sdpMid', 'sdpMLineIndex', 'createdAt'
+                           ]) &&
+                           isValidWebRtcSignal(incoming(), userId, sessionId) &&
+                           exists(/databases/$(database)/documents/users/$(userId)/sessions/$(sessionId));
+
+          // Signals are immutable append-only WebRTC envelopes
+          allow update: if false;
+
+          allow delete: if isOwner(userId) && isValidId(sessionId) && isValidId(signalId);
+        }
+      }
+    }
+  }
+}

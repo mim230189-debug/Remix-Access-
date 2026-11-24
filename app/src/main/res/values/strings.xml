@@ -1,0 +1,69 @@
+<resources>
+    <string name="app_name">Wink Remote Access</string>
+    <string name="accessibility_service_description">Allows the device owner to approve remote navigation assistance (Back, Home, Recents, and touch feedback) during an active Wink Remote Access support session. Can be disabled anytime in Android Settings.</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_sessions">Sessions</string>
+    <string name="nav_support">Support</string>
+    <string name="nav_account">Account</string>
+
+    <!-- Auth Screen -->
+    <string name="auth_headline">Wink Remote Access</string>
+    <string name="auth_subtitle">Connect your Android device to your personal web controller dashboard with owner-approved WebRTC streaming.</string>
+    <string name="auth_sign_in_google">Sign in with Google</string>
+    <string name="auth_signing_in">Authenticating...</string>
+    <string name="auth_security_badge">Zero hidden capture • Explicit owner consent required</string>
+    <string name="auth_config_notice">Authentication uses Google Sign-In via Credential Manager. Optional Email/Password and FCM push wake-ups can be enabled in your Firebase Console.</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_device_id_label">DEVICE IDENTIFIER</string>
+    <string name="dashboard_copy_id">Copy Device ID</string>
+    <string name="dashboard_copied_id">Device ID copied to clipboard</string>
+    <string name="dashboard_register_device">Register Device</string>
+    <string name="dashboard_sync_device">Sync Status</string>
+    <string name="dashboard_test_request">Request From Web Dashboard</string>
+    <string name="dashboard_screen_share_title">Remote Screen Sharing</string>
+    <string name="dashboard_screen_share_desc">Streams your display over encrypted WebRTC using Android MediaProjection after system consent.</string>
+    <string name="dashboard_start_screen_share">Start Screen Sharing</string>
+    <string name="dashboard_stop_screen_share">Stop Sharing</string>
+    <string name="dashboard_camera_title">CameraX Live Feed</string>
+    <string name="dashboard_camera_desc">Explicitly streams front or rear camera only while an approved session is active.</string>
+    <string name="dashboard_start_camera">Start Camera</string>
+    <string name="dashboard_stop_camera">Stop Camera</string>
+    <string name="dashboard_switch_camera">Switch Lens</string>
+    <string name="dashboard_mic_title">Microphone Audio</string>
+    <string name="dashboard_mic_desc">Requests microphone permission separately and displays an active capture indicator.</string>
+    <string name="dashboard_start_mic">Enable Mic</string>
+    <string name="dashboard_stop_mic">Stop Mic</string>
+
+    <!-- Sessions -->
+    <string name="sessions_incoming_title">Incoming Controller Requests</string>
+    <string name="sessions_active_title">Active Session</string>
+    <string name="sessions_history_title">Session History</string>
+    <string name="sessions_accept">Accept</string>
+    <string name="sessions_reject">Reject</string>
+    <string name="sessions_terminate">Terminate Session</string>
+    <string name="sessions_empty">No controller requests yet. Use your personal web dashboard or send a pairing request from Dashboard.</string>
+
+    <!-- Support & Permissions -->
+    <string name="support_accessibility_title">Remote Support Helper</string>
+    <string name="support_accessibility_desc">Uses Android AccessibilityService strictly when enabled by you in Settings. Never bypasses lock screens or security dialogs.</string>
+    <string name="support_open_settings">Open Accessibility Settings</string>
+    <string name="support_permissions_title">Permission &amp; Consent Guard</string>
+    <string name="support_permissions_desc">Revoking any system permission automatically stops active streams and disconnects the session.</string>
+
+    <!-- Account & Setup Docs -->
+    <string name="account_theme_title">Appearance</string>
+    <string name="account_device_management">Device Registration</string>
+    <string name="account_remove_device">Remove Device &amp; Disconnect</string>
+    <string name="account_sign_out">Sign Out</string>
+    <string name="account_setup_docs_title">Firebase &amp; Web Controller Setup</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_session_name">Active Remote Session</string>
+    <string name="notification_channel_session_desc">Persistent indicator while screen sharing, camera, or microphone streaming is active.</string>
+    <string name="notification_channel_alerts_name">Incoming Controller Requests</string>
+    <string name="notification_channel_alerts_desc">Alerts when your web controller dashboard requests a remote access session.</string>
+    <string name="notification_stop_sharing">Stop Sharing</string>
+</resources>

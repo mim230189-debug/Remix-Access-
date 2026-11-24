@@ -1,0 +1,271 @@
+{
+  "entities": {
+    "UserAccount": {
+      "title": "UserAccount",
+      "description": "Authenticated device owner profile and UI theme preference.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the device owner."
+        },
+        "email": {
+          "type": "string",
+          "description": "Owner email address from Google Sign-In."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Owner display name."
+        },
+        "themePreference": {
+          "type": "string",
+          "enum": ["SYSTEM", "LIGHT", "DARK"],
+          "description": "Preferred UI theme mode."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "createdAt", "updatedAt"]
+    },
+    "RegisteredDevice": {
+      "title": "RegisteredDevice",
+      "description": "An Android device registered under the owner's Wink Remote Access account.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "deviceName": {
+          "type": "string",
+          "description": "Friendly device name shown on dashboard."
+        },
+        "manufacturer": {
+          "type": "string",
+          "description": "Device manufacturer."
+        },
+        "model": {
+          "type": "string",
+          "description": "Device model."
+        },
+        "osVersion": {
+          "type": "string",
+          "description": "Android OS version string."
+        },
+        "appVersion": {
+          "type": "string",
+          "description": "Installed Wink Remote Access version."
+        },
+        "connectionStatus": {
+          "type": "string",
+          "enum": ["ONLINE", "IDLE", "IN_SESSION", "OFFLINE"],
+          "description": "Current connection state reported to the web dashboard."
+        },
+        "screenShareSupported": {
+          "type": "boolean",
+          "description": "Whether MediaProjection screen capture is supported."
+        },
+        "cameraSupported": {
+          "type": "boolean",
+          "description": "Whether CameraX video streaming is available."
+        },
+        "microphoneSupported": {
+          "type": "boolean",
+          "description": "Whether microphone audio streaming is available."
+        },
+        "remoteSupportEnabled": {
+          "type": "boolean",
+          "description": "Whether the AccessibilityService remote support helper is enabled by the owner."
+        },
+        "fcmToken": {
+          "type": "string",
+          "description": "Optional Firebase Cloud Messaging registration token."
+        },
+        "lastSeenAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last heartbeat server timestamp."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation server timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update server timestamp."
+        }
+      },
+      "required": [
+        "userId",
+        "deviceName",
+        "manufacturer",
+        "model",
+        "osVersion",
+        "appVersion",
+        "connectionStatus",
+        "screenShareSupported",
+        "cameraSupported",
+        "microphoneSupported",
+        "remoteSupportEnabled",
+        "lastSeenAt",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "RemoteSession": {
+      "title": "RemoteSession",
+      "description": "An owner-approved remote access or support session between the Android device and personal web dashboard.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "deviceId": {
+          "type": "string",
+          "description": "Target registered device ID."
+        },
+        "controllerLabel": {
+          "type": "string",
+          "description": "Human-readable web controller label."
+        },
+        "controllerOrigin": {
+          "type": "string",
+          "description": "Web controller origin or browser descriptor."
+        },
+        "requestedMode": {
+          "type": "string",
+          "enum": ["SCREEN", "CAMERA", "SCREEN_AND_AUDIO", "FULL_SUPPORT"],
+          "description": "Capabilities requested by the web controller."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["PENDING", "ACTIVE", "REJECTED", "TERMINATED"],
+          "description": "Session lifecycle status."
+        },
+        "screenSharingActive": {
+          "type": "boolean",
+          "description": "True only while MediaProjection screen sharing is active."
+        },
+        "cameraActive": {
+          "type": "boolean",
+          "description": "True only while CameraX capture is active."
+        },
+        "microphoneActive": {
+          "type": "boolean",
+          "description": "True only while microphone audio streaming is active."
+        },
+        "remoteSupportActive": {
+          "type": "boolean",
+          "description": "True only while AccessibilityService remote support is active."
+        },
+        "terminationReason": {
+          "type": "string",
+          "description": "Optional reason for session rejection or termination."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Session creation server timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last session update server timestamp."
+        }
+      },
+      "required": [
+        "userId",
+        "deviceId",
+        "controllerLabel",
+        "controllerOrigin",
+        "requestedMode",
+        "status",
+        "screenSharingActive",
+        "cameraActive",
+        "microphoneActive",
+        "remoteSupportActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WebRtcSignal": {
+      "title": "WebRtcSignal",
+      "description": "WebRTC SDP offer/answer or ICE candidate exchanged over Firestore.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Parent session document ID."
+        },
+        "senderRole": {
+          "type": "string",
+          "enum": ["DEVICE", "CONTROLLER"],
+          "description": "Signaling sender role."
+        },
+        "signalType": {
+          "type": "string",
+          "enum": ["OFFER", "ANSWER", "ICE_CANDIDATE"],
+          "description": "WebRTC signal payload type."
+        },
+        "sdpOrCandidate": {
+          "type": "string",
+          "description": "Serialized SDP string or ICE candidate string."
+        },
+        "sdpMid": {
+          "type": "string",
+          "description": "Optional ICE media stream identification tag."
+        },
+        "sdpMLineIndex": {
+          "type": "integer",
+          "description": "Optional ICE media line index."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Signal creation server timestamp."
+        }
+      },
+      "required": [
+        "userId",
+        "sessionId",
+        "senderRole",
+        "signalType",
+        "sdpOrCandidate",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserAccount" },
+      "description": "Owner profile and preferences isolated by Firebase Auth UID."
+    },
+    "/users/{userId}/devices/{deviceId}": {
+      "schema": { "$ref": "#/entities/RegisteredDevice" },
+      "description": "Registered Android devices owned by the authenticated user."
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/RemoteSession" },
+      "description": "Incoming and active remote access sessions owned by the authenticated user."
+    },
+    "/users/{userId}/sessions/{sessionId}/signals/{signalId}": {
+      "schema": { "$ref": "#/entities/WebRtcSignal" },
+      "description": "WebRTC SDP and ICE signaling messages scoped to an owner's remote session."
+    }
+  }
+}
